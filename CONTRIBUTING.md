@@ -4,15 +4,24 @@ Great that you are here and you want to contribute to n8n
 
 ## Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [Directory Structure](#directory-structure)
-- [Development Setup](#development-setup)
-- [Development Cycle](#development-cycle)
-- [Create Custom Nodes](#create-custom-nodes)
-- [Create a new node to contribute to n8n](#create-a-new-node-to-contribute-to-n8n)
-- [Checklist before submitting a new node](#checklist-before-submitting-a-new-node)
-- [Extend Documentation](#extend-documentation)
-- [Contributor License Agreement](#contributor-license-agreement)
+- [Contributing to n8n](#contributing-to-n8n)
+  - [Contents](#contents)
+  - [Code of conduct](#code-of-conduct)
+  - [Directory structure](#directory-structure)
+  - [Development setup](#development-setup)
+    - [Requirements](#requirements)
+      - [Node.js](#nodejs)
+      - [Build tools](#build-tools)
+      - [npm workspaces](#npm-workspaces)
+    - [Actual n8n setup](#actual-n8n-setup)
+    - [Start](#start)
+  - [Development cycle](#development-cycle)
+    - [Test suite](#test-suite)
+  - [Create custom nodes](#create-custom-nodes)
+  - [Create a new node to contribute to n8n](#create-a-new-node-to-contribute-to-n8n)
+  - [Checklist before submitting a new node](#checklist-before-submitting-a-new-node)
+  - [Extend documentation](#extend-documentation)
+  - [Contributor License Agreement](#contributor-license-agreement)
 
 ## Code of conduct
 
@@ -109,13 +118,19 @@ checked out and set up:
    git remote add upstream https://github.com/n8n-io/n8n.git
    ```
 
-5. Install all dependencies of all modules and link them together:
+5. Enable pnpm via corepack
 
    ```
-   npm install
+   corepack enable && corepack prepare pnpm@7.13.4 --activate
    ```
 
-6. Build all the code:
+6. Install all dependencies of all modules and link them together:
+
+   ```
+   pnpm install
+   ```
+
+7. Build all the code:
    ```
    npm run build
    ```

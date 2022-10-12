@@ -10,7 +10,7 @@ npm install n8n -g
 
 ## Project setup
 ```
-npm install
+pnpm install
 ```
 
 ### Compiles and hot-reloads for development

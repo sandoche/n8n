@@ -5,7 +5,7 @@ A component system for [n8n](https://n8n.io) using Storybook to preview.
 ## Project setup
 
 ```
-npm install
+pnpm install
 ```
 
 ### Compiles and hot-reloads for development
