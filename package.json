@@ -25,6 +25,7 @@
     "worker": "./packages/cli/bin/n8n worker"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.25.0",
     "@types/jest": "^27.4.1",
     "@types/node": "^16.11.22",
     "jest": "^27.5.1",
