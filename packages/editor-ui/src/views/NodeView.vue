@@ -420,11 +420,8 @@ export default mixins(
 			isDemo(): boolean {
 				return this.$route.name === VIEWS.DEMO;
 			},
-			isExecutionView(): boolean {
-				return this.$route.name === VIEWS.EXECUTION;
-			},
 			showCanvasAddButton(): boolean {
-				return this.loadingService === null && !this.containsTrigger && !this.isDemo && !this.isExecutionView;
+				return this.loadingService === null && !this.containsTrigger && !this.isDemo;
 			},
 			lastSelectedNode(): INodeUi | null {
 				return this.uiStore.getLastSelectedNode;
@@ -458,8 +455,7 @@ export default mixins(
 			backgroundStyle(): object {
 				return CanvasHelpers.getBackgroundStyles(
 					this.nodeViewScale,
-					this.uiStore.nodeViewOffsetPosition,
-					this.isExecutionPreview,
+					this.uiStore.nodeViewOffsetPosition
 				);
 			},
 			workflowClasses() {
@@ -532,7 +528,6 @@ export default mixins(
 				dropPrevented: false,
 				renamingActive: false,
 				showStickyButton: false,
-				isExecutionPreview: false,
 				showTriggerMissingTooltip: false,
 				workflowData: null as INewWorkflowData | null,
 				isProductionExecutionPreview: false,
@@ -677,70 +672,6 @@ export default mixins(
 				this.nodeCreatorStore.showScrim = true;
 				this.onToggleNodeCreator({ source, createNodeActive: true });
 				this.nodeCreatorStore.showTabs = false;
-			},
-			async openExecution(executionId: string) {
-				this.startLoading();
-				this.resetWorkspace();
-				let data: IExecutionResponse | undefined;
-				try {
-					data = await this.restApi().getExecution(executionId);
-				} catch (error) {
-					this.$showError(
-						error,
-						this.$locale.baseText('nodeView.showError.openExecution.title'),
-					);
-					return;
-				}
-				if (data === undefined) {
-					throw new Error(`Execution with id "${executionId}" could not be found!`);
-				}
-				this.workflowsStore.setWorkflowName({ newName: data.workflowData.name, setStateDirty: false });
-				this.workflowsStore.setWorkflowId(PLACEHOLDER_EMPTY_WORKFLOW_ID);
-				this.workflowsStore.setWorkflowExecutionData(data);
-				if (data.workflowData.pinData) {
-					this.workflowsStore.setWorkflowPinData(data.workflowData.pinData);
-				}
-
-				await this.addNodes(deepCopy(data.workflowData.nodes), deepCopy(data.workflowData.connections));
-				this.$nextTick(() => {
-					this.canvasStore.zoomToFit();
-					this.uiStore.stateIsDirty = false;
-				});
-				this.$externalHooks().run('execution.open', { workflowId: data.workflowData.id, workflowName: data.workflowData.name, executionId });
-				this.$telemetry.track('User opened read-only execution', { workflow_id: data.workflowData.id, execution_mode: data.mode, execution_finished: data.finished });
-
-				if (!data.finished && data.data?.resultData?.error) {
-					// Check if any node contains an error
-					let nodeErrorFound = false;
-					if (data.data.resultData.runData) {
-						const runData = data.data.resultData.runData;
-						errorCheck:
-						for (const nodeName of Object.keys(runData)) {
-							for (const taskData of runData[nodeName]) {
-								if (taskData.error) {
-									nodeErrorFound = true;
-									break errorCheck;
-								}
-							}
-						}
-					}
-
-					if (!nodeErrorFound && data.data.resultData.error.stack) {
-						// Display some more information for now in console to make debugging easier
-						// TODO: Improve this in the future by displaying in UI
-						console.error(`Execution ${executionId} error:`); // eslint-disable-line no-console
-						console.error(data.data.resultData.error.stack); // eslint-disable-line no-console
-					}
-				}
-				if ((data as IExecutionsSummary).waitTill) {
-					this.$showMessage({
-						title: this.$locale.baseText('nodeView.thisExecutionHasntFinishedYet'),
-						message: `<a data-action="reload">${this.$locale.baseText('nodeView.refresh')}</a> ${this.$locale.baseText('nodeView.toSeeTheLatestStatus')}.<br/> <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.wait/" target="_blank">${this.$locale.baseText('nodeView.moreInfo')}</a>`,
-						type: 'warning',
-						duration: 0,
-					});
-				}
-				this.stopLoading();
 			},
 			async importWorkflowExact(data: { workflow: IWorkflowDataUpdate }) {
 				if (!data.workflow.nodes || !data.workflow.connections) {
@@ -2177,11 +2108,6 @@ export default mixins(
 				else if (this.$route.name === VIEWS.TEMPLATE_IMPORT) {
 					const templateId = this.$route.params.id;
 					await this.openWorkflowTemplate(templateId);
-				}
-				else if (this.isExecutionView) {
-					// Load an execution
-					const executionId = this.$route.params.id;
-					await this.openExecution(executionId);
 				} else {
 					const result = this.uiStore.stateIsDirty;;
 					if (result) {
@@ -3148,31 +3074,12 @@ export default mixins(
 					if (json && json.command === 'openWorkflow') {
 						try {
 							await this.importWorkflowExact(json);
-							this.isExecutionPreview = false;
 						} catch (e) {
 							if (window.top) {
 								window.top.postMessage(JSON.stringify({ command: 'error', message: this.$locale.baseText('openWorkflow.workflowImportError') }), '*');
 							}
 							this.$showMessage({
 								title: this.$locale.baseText('openWorkflow.workflowImportError'),
-								message: (e as Error).message,
-								type: 'error',
-							});
-						}
-					} else if (json && json.command === 'openExecution') {
-						try {
-							// If this NodeView is used in preview mode (in iframe) it will not have access to the main app store
-							// so everything it needs has to be sent using post messages and passed down to child components
-							this.isProductionExecutionPreview = json.executionMode !== 'manual';
-
-							await this.openExecution(json.executionId);
-							this.isExecutionPreview = true;
-						} catch (e) {
-							if (window.top) {
-								window.top.postMessage(JSON.stringify({ command: 'error', message: this.$locale.baseText('nodeView.showError.openExecution.title') }), '*');
-							}
-							this.$showMessage({
-								title: this.$locale.baseText('nodeView.showError.openExecution.title'),
 								message: (e as Error).message,
 								type: 'error',
 							});

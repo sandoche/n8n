@@ -288,7 +288,6 @@ export const TEMPLATES_NODES_FILTER = [
 export enum VIEWS {
 	HOMEPAGE = "Homepage",
 	COLLECTION = "TemplatesCollectionView",
-	EXECUTION = "ExecutionById",
 	EXECUTIONS = "ExecutionList",
 	EXECUTION_PREVIEW = "ExecutionPreview",
 	EXECUTION_HOME = "ExecutionsLandingPage",

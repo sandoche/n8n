@@ -221,7 +221,7 @@ export const useUIStore = defineStore(STORES.UI, {
 			return (id: string) => this.fakeDoorFeatures.find(fakeDoor => fakeDoor.id.toString() === id);
 		},
 		isNodeView() : boolean {
-			return [VIEWS.NEW_WORKFLOW.toString(), VIEWS.WORKFLOW.toString(), VIEWS.EXECUTION.toString()].includes(this.currentView);
+			return [VIEWS.NEW_WORKFLOW.toString(), VIEWS.WORKFLOW.toString()].includes(this.currentView);
 		},
 		isActionActive() {
 			return (action: string) => this.activeActions.includes(action);
