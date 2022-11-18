@@ -456,7 +456,7 @@ export default mixins(
 			backgroundStyle(): object {
 				return CanvasHelpers.getBackgroundStyles(
 					this.nodeViewScale,
-					this.uiStore.nodeViewOffsetPosition
+					this.uiStore.nodeViewOffsetPosition,
 				);
 			},
 			workflowClasses() {
