@@ -207,7 +207,12 @@ export class Start extends Command {
 					);
 				}
 				streams.push(createWriteStream(destFile, 'utf-8'));
-				return pipeline(streams);
+				try {
+					await pipeline(streams);
+				} catch (error) {
+					console.log(error);
+					console.log(fileName, streams.length);
+				}
 			}
 		};
 
