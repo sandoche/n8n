@@ -13,9 +13,9 @@ import localtunnel from 'localtunnel';
 import { BinaryDataManager, TUNNEL_SUBDOMAIN_ENV, UserSettings } from 'n8n-core';
 import { Command, flags } from '@oclif/command';
 import Redis from 'ioredis';
-import stream from 'stream';
+// import stream from 'stream';
 import replaceStream from 'replacestream';
-import { promisify } from 'util';
+// import { promisify } from 'util';
 import glob from 'fast-glob';
 
 import { IDataObject, LoggerProxy, sleep } from 'n8n-workflow';
@@ -43,10 +43,11 @@ import { initErrorHandling } from '@/ErrorReporting';
 import * as CrashJournal from '@/CrashJournal';
 import { createPostHogLoadingScript } from '@/telemetry/scripts';
 import { EDITOR_UI_DIST_DIR, GENERATED_STATIC_DIR } from '@/constants';
+import { pipeline } from 'stream/promises';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const open = require('open');
-const pipeline = promisify(stream.pipeline);
+// const pipeline = promisify(stream.pipeline);
 
 let activeWorkflowRunner: ActiveWorkflowRunner.ActiveWorkflowRunner | undefined;
 let processExitCode = 0;
