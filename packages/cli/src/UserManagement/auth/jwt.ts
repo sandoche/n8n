@@ -8,7 +8,6 @@ import { AUTH_COOKIE_NAME } from '@/constants';
 import { JwtPayload, JwtToken } from '../Interfaces';
 import { User } from '@db/entities/User';
 import config from '@/config';
-import { ResponseHelper } from '@/index';
 
 export function issueJWT(user: User): JwtToken {
 	const { id, email, password } = user;
@@ -46,12 +45,6 @@ export async function resolveJwtContent(jwtPayload: JwtPayload): Promise<User> {
 		passwordHash = createHash('sha256')
 			.update(user.password.slice(user.password.length / 2))
 			.digest('hex');
-	}
-
-	// currently only LDAP users during synchronization
-	// can be set to disabled
-	if (user?.disabled) {
-		throw new ResponseHelper.AuthError('Unauthorized');
 	}
 
 	if (!user || jwtPayload.password !== passwordHash || user.email !== jwtPayload.email) {

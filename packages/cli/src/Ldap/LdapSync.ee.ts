@@ -119,7 +119,7 @@ export class LdapSync {
 			});
 		}
 
-		Logger.debug(`LDAP - Users proccesed`, {
+		Logger.debug(`LDAP - Users processed`, {
 			created: usersToCreate.length,
 			updated: usersToUpdate.length,
 			disabled: usersToDisable.length,
@@ -185,8 +185,8 @@ export class LdapSync {
 		localAdUsers: string[],
 		role: Role,
 	): {
-		usersToCreate: User[];
-		usersToUpdate: User[];
+		usersToCreate: Array<[string, User]>;
+		usersToUpdate: Array<[string, User]>;
 		usersToDisable: string[];
 	} {
 		return {
@@ -203,7 +203,11 @@ export class LdapSync {
 	 * @param  {string[]} localAdUsers
 	 * @returns Array
 	 */
-	private getUsersToCreate(adUsers: Entry[], localAdUsers: string[], role: Role): User[] {
+	private getUsersToCreate(
+		adUsers: Entry[],
+		localAdUsers: string[],
+		role: Role,
+	): Array<[string, User]> {
 		return adUsers
 			.filter((user) => !localAdUsers.includes(user[this._config.ldapIdAttribute] as string))
 			.map((user: Entry) => mapLdapUserToDbUser(user, this._config, role));
@@ -216,7 +220,7 @@ export class LdapSync {
 	 * @param  {string[]} localAdUsers
 	 * @returns Array
 	 */
-	private getUsersToUpdate(adUsers: Entry[], localAdUsers: string[]) {
+	private getUsersToUpdate(adUsers: Entry[], localAdUsers: string[]): Array<[string, User]> {
 		return adUsers
 			.filter((user) => localAdUsers.includes(user[this._config.ldapIdAttribute] as string))
 			.map((user: Entry) => mapLdapUserToDbUser(user, this._config));
@@ -227,7 +231,7 @@ export class LdapSync {
 	 * but no in the LDAP server
 	 * @param  {Entry[]} adUsers
 	 * @param  {string[]} localAdUsers
-	 * @retuens Array
+	 * @returns Array
 	 */
 	private getUsersToDisable(adUsers: Entry[], localAdUsers: string[]): string[] {
 		const filteredAdUsers = adUsers.map((user) => user[this._config.ldapIdAttribute]);

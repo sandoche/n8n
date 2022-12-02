@@ -142,7 +142,6 @@ export function sanitizeUser(user: User, withoutKeys?: string[]): PublicUser {
 		resetPasswordTokenExpiration,
 		updatedAt,
 		apiKey,
-		ldapId,
 		...sanitizedUser
 	} = user;
 	if (withoutKeys) {

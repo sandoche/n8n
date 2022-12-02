@@ -36,9 +36,10 @@ import type {
 	MappingName,
 } from './types';
 
-import { LDAP_DEFAULT_CONFIGURATION, LDAP_FEATURE_NAME, SignInType } from '@/Ldap/constants';
+import { LDAP_DEFAULT_CONFIGURATION, LDAP_FEATURE_NAME } from '@/Ldap/constants';
 import { LdapConfig } from '@/Ldap/types';
 import type { DatabaseType, ICredentialsDb } from '@/Interfaces';
+import { AuthIdentity } from '@/databases/entities/AuthIdentity';
 
 export type TestDBType = 'postgres' | 'mysql';
 
@@ -240,6 +241,7 @@ function toTableName(sourceName: CollectionName | MappingName) {
 	if (isMapping(sourceName)) return MAPPING_TABLES[sourceName];
 
 	return {
+		AuthIdentity: 'auth_identity',
 		Credentials: 'credentials_entity',
 		Workflow: 'workflow_entity',
 		Execution: 'execution_entity',
@@ -314,18 +316,27 @@ export function affixRoleToSaveCredential(role: Role) {
  * Store a user in the DB, defaulting to a `member`.
  */
 export async function createUser(attributes: Partial<User> = {}): Promise<User> {
-	const { email, password, firstName, lastName, globalRole, signInType, ...rest } = attributes;
+	const { email, password, firstName, lastName, globalRole, ...rest } = attributes;
 	const user = {
 		email: email ?? randomEmail(),
 		password: await hashPassword(password ?? randomValidPassword()),
 		firstName: firstName ?? randomName(),
 		lastName: lastName ?? randomName(),
 		globalRole: globalRole ?? (await getGlobalMemberRole()),
-		signInType: signInType ?? SignInType.EMAIL,
 		...rest,
 	};
 
 	return Db.collections.User.save(user);
+}
+
+export async function createLdapUser(
+	attributes: Partial<User> = {},
+	ldapId: string,
+	enabled = true,
+): Promise<User> {
+	const user = await createUser(attributes);
+	await Db.collections.AuthIdentity.save(AuthIdentity.create(user, ldapId, 'ldap', enabled));
+	return user;
 }
 
 export async function createOwner() {
@@ -722,9 +733,12 @@ async function encryptCredentialData(credential: CredentialsEntity) {
 }
 
 export async function createLdapDefaultConfig(attributes: Partial<LdapConfig> = {}) {
-	const configuration = {
-		...LDAP_DEFAULT_CONFIGURATION,
-		...attributes,
-	}
-	return Db.collections.FeatureConfig.save({ name: LDAP_FEATURE_NAME, data: configuration })
+	const { data: ldapConfig } = await Db.collections.FeatureConfig.save({
+		name: LDAP_FEATURE_NAME,
+		data: {
+			...LDAP_DEFAULT_CONFIGURATION,
+			...attributes,
+		},
+	});
+	return ldapConfig;
 }
