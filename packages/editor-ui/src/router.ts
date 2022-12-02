@@ -568,8 +568,7 @@ const router = new Router({
 							},
 							deny: {
 								shouldDeny: () => {
-									const settingsStore = useSettingsStore();
-									return !settingsStore.isEnterpriseFeatureEnabled(EnterpriseEditionFeature.Ldap);
+									return false;
 								},
 							},
 						},

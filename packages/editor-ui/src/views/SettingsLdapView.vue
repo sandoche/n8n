@@ -216,7 +216,7 @@ export default mixins(showMessage).extend({
 			return this.usersStore.currentUser;
 		},
 		isLDAPFeatureEnabled(): boolean {
-			return this.settingsStore.settings.enterprise.ldap === true;
+			return false;
 		},
 	},
 	methods: {
